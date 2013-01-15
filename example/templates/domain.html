@@ -1,0 +1,15 @@
+<!doctype html>
+<title>Keyword Info</title>
+{% if domain['len']  %}
+<h5> keyword length: {{domain['len']}} </h5>
+{% endif %}
+{% if domain['alexa_content']  %}
+  <h5>alexa content {{ domain['alexa_content']|length }} of {{domain['alexa_count']}} :</h5>
+  {% for alexa_entry in domain['alexa_content'] %}
+    <li><a href="http://{{ alexa_entry[0] }}">{{ alexa_entry[0] }} </a> , {{ alexa_entry[1] }}</li>
+  {% endfor %}
+{% endif %}
+
+{% if domain['pinyin']  %}
+  <h5>pinyin: {{ domain['pinyin'] }}</h5>
+{% endif %}

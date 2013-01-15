@@ -1,3 +1,15 @@
+# coding: utf-8
+import json
+from functools import wraps
+
+from functools import wraps
+from flask import Flask, render_template, session, redirect, url_for, escape, request, current_app
+from flask import jsonify
+from pymongo import MongoClient
+
+connection = MongoClient()
+
+
 import datetime
 
 from flask import request, redirect, url_for, render_template, flash
@@ -7,6 +19,69 @@ from flask_peewee.utils import get_object_or_404, object_list
 from app import app
 from auth import auth
 from models import User, Message, Relationship
+
+
+
+ 
+def support_jsonp(f):
+    """Wraps JSONified output for JSONP"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        callback = request.args.get('callback', False)
+        if callback:
+            content = str(callback) + '(' + str(f(*args,**kwargs).data) + ')'
+            return current_app.response_class(content, mimetype='application/javascript')
+        else:
+            return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route('/test', methods=['GET'])
+@support_jsonp
+def test():
+    return jsonify({"foo":"bar"})
+
+
+@app.route('/keywordlist/', methods=['GET'])
+@support_jsonp
+def keywordlist():
+    domains = connection.test.domain1.find({'_id': {"$in":['zuqiu','ruanjian','mama','ma']}})
+    objects = []
+    for object in domains:
+       objects.append(object['pinyin'])
+    return jsonify(objects)
+    #return str(domains.count())
+
+
+@app.route("/keyword/<_id>")
+#@support_jsonp
+def show_post(_id):
+   # NOTE!: converting _id from string to ObjectId before passing to find_one
+   if _id.isnumeric():
+    _id=int(_id)
+   domain = connection.test.domain1.find_one({'_id': _id})
+   if domain:
+    #return jsonify(domain)
+    #return domain['alexa_content']
+    if 'alexa_content' in domain:
+      result=dict( (n,int(v)) for n,v in (a.split('=') for a in domain['alexa_content'].split(";") ) )
+      sorted_result= sorted(result.items(), key=lambda x: int(x[1])-1000000 if x[0].endswith(".cn")  else  int(x[1]) )
+      domain['alexa_content']=sorted_result
+    #return  jsonify(sorted_result)
+    #return jsonify(domain),200, {'Content-Type': 'application/json; charset=utf-8'}
+    #return domain['pinyin']
+    #return jsonify(domain)
+    #return jsonify( unicode(domain, 'utf-8'))
+    #if 'pinyin' in domain:
+    #  domain['pinyin']=domain['pinyin'].decode("utf-8")
+    # return json.dumps(domain),200, {'Content-Type': 'application/json; charset=utf-8'}
+    #return jsonify(domain)
+    return render_template('domain.html', domain=domain)
+
+
+
+   return 'Nothing found for this keyword'
+
 
 
 @app.route('/')
