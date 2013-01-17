@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import re
 from functools import wraps
 
 from functools import wraps
@@ -42,14 +43,49 @@ def test():
     return jsonify({"foo":"bar"})
 
 
+@app.route('/domainupload/', methods=['GET', 'POST'])
+@auth.login_required
+def domainupload():
+    if request.method == 'POST':
+        domain_str = request.form['domains']
+        da=re.split('\s+',domain_str)
+        #domains = connection.test.domain1.find({'_id': {"$in":['zuqiu','ruanjian','mama','ma','abc','4399']}})
+        domains = connection.test.domain1.find({'_id': {"$in": da}})
+        
+        objects = []
+        for domain in domains:
+          if 'alexa_content' in domain:
+            result=dict( (n,int(v)) for n,v in (a.split('=') for a in domain['alexa_content'].split(";") ) )
+            sorted_result= sorted(result.items(), key=lambda x: int(x[1])-1000000 if x[0].endswith(".cn")  else  int(x[1]) )
+            domain['alexa_content']=sorted_result
+          objects.append(domain)
+        return render_template('domains.html', domains=objects)
+
+        #return str(da)
+    return '''
+        <form action="" method="post">
+            <p><textarea cols="40" rows="8" name="domains">
+                abc 123 ruanjian
+                </textarea>
+            <p><input type=submit value=Login>
+        </form>
+    '''
+
 @app.route('/keywordlist/', methods=['GET'])
-@support_jsonp
+#@support_jsonp
+@auth.login_required
 def keywordlist():
-    domains = connection.test.domain1.find({'_id': {"$in":['zuqiu','ruanjian','mama','ma']}})
+    domains = connection.test.domain1.find({'_id': {"$in":['zuqiu','ruanjian','mama','ma','abc','4399']}})
     objects = []
-    for object in domains:
-       objects.append(object['pinyin'])
-    return jsonify(objects)
+    for domain in domains:
+        if 'alexa_content' in domain:
+            result=dict( (n,int(v)) for n,v in (a.split('=') for a in domain['alexa_content'].split(";") ) )
+            sorted_result= sorted(result.items(), key=lambda x: int(x[1])-1000000 if x[0].endswith(".cn")  else  int(x[1]) )
+            domain['alexa_content']=sorted_result
+        objects.append(domain)
+    return render_template('domains.html', domains=objects)
+    #return objects[0]
+    #return jsonify(objects)
     #return str(domains.count())
 
 
