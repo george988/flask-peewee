@@ -8,8 +8,6 @@ from flask import Flask, render_template, session, redirect, url_for, escape, re
 from flask import jsonify
 from pymongo import MongoClient
 
-connection = MongoClient()
-
 
 import datetime
 
@@ -22,6 +20,13 @@ from auth import auth
 from models import User, Message, Relationship
 
 
+from flask.ext.assets import Environment, Bundle
+assets = Environment(app)
+css_all = Bundle('datatable/css/demo_page.css','datatable/css/demo_table_jui.css')
+assets.register('css_all',css_all)
+
+
+connection = MongoClient()
 
  
 def support_jsonp(f):
@@ -48,54 +53,69 @@ def test():
 def domainupload():
     if request.method == 'POST':
         domain_str = request.form['domains']
-        da=re.split('\s+',domain_str)
+        domain_regex=r'[a-z0-9A-Z][a-zA-Z0-9\-]*[a-zA-S0-9]?\.[a-zA-Z]+'
+        da=set(re.findall(domain_regex, domain_str))
+        ka=[];
+        for da_item in da:
+            ka.append(da_item.split('.')[0])
+
+        #da=re.split('\s+',domain_str)
+        #ka=da
         #domains = connection.test.domain1.find({'_id': {"$in":['zuqiu','ruanjian','mama','ma','abc','4399']}})
-        domains = connection.test.domain1.find({'_id': {"$in": da}})
-        
+        domains = connection.test.keyword.find({'keyword': {"$in": ka}})
         objects = []
         for domain in domains:
-          if 'alexa_content' in domain:
-            result=dict( (n,int(v)) for n,v in (a.split('=') for a in domain['alexa_content'].split(";") ) )
-            sorted_result= sorted(result.items(), key=lambda x: int(x[1])-1000000 if x[0].endswith(".cn")  else  int(x[1]) )
-            domain['alexa_content']=sorted_result
-          objects.append(domain)
+            for da_item in da:
+                if da_item.split('.')[0]==domain['keyword']:
+                    domain=updatedomainfromdb(domain,da_item)
+                    objects.append(domain)
         return render_template('domains.html', domains=objects)
 
-        #return str(da)
     return '''
         <form action="" method="post">
             <p><textarea cols="40" rows="8" name="domains">
-                abc 123 ruanjian
+            google.com abc.com hao.com hao123.com ruanjian.com ha.com
                 </textarea>
-            <p><input type=submit value=Login>
+            <p><input type=submit value='upload and process'>
         </form>
     '''
 
-@app.route('/keywordlist/', methods=['GET'])
+
+
+@app.route("/domain/<dn>")
 #@support_jsonp
-@auth.login_required
-def keywordlist():
-    domains = connection.test.domain1.find({'_id': {"$in":['zuqiu','ruanjian','mama','ma','abc','4399']}})
-    objects = []
-    for domain in domains:
-        if 'alexa_content' in domain:
-            result=dict( (n,int(v)) for n,v in (a.split('=') for a in domain['alexa_content'].split(";") ) )
-            sorted_result= sorted(result.items(), key=lambda x: int(x[1])-1000000 if x[0].endswith(".cn")  else  int(x[1]) )
-            domain['alexa_content']=sorted_result
-        objects.append(domain)
-    return render_template('domains.html', domains=objects)
-    #return objects[0]
-    #return jsonify(objects)
-    #return str(domains.count())
+def show_domain_detail(dn):
+   domainname=dn
+   keyword=domainname.split('.')[0]
+   domain = connection.test.keyword.find_one({'keyword': keyword})
+   if domain:
+    domain=updatedomainfromdb(domain,domainname)
+    return render_template('domain.html', domain=domain)
+   else:
+    return domainname+ " not found"
+
+
+def updatedomainfromdb(domain,domainname):
+    if 'alexa_content' in domain:
+      result=dict( (n,int(v)) for n,v in (a.split('=') for a in domain['alexa_content'].split(";") ) )
+      sorted_result= sorted(result.items(), key=lambda x: int(x[1])-1000000 if x[0].endswith(".cn")  else  int(x[1]) )
+      domain['alexa_content_list']=sorted_result
+    if 'alexa_rank' in domain:
+        for alexa_dict in domain['alexa_rank']:
+            if domainname in alexa_dict:
+                domain['alexa']=alexa_dict.get(domainname)
+                break
+    domain['domainname']=domainname 
+    return domain            
 
 
 @app.route("/keyword/<_id>")
 #@support_jsonp
 def show_post(_id):
    # NOTE!: converting _id from string to ObjectId before passing to find_one
-   if _id.isnumeric():
-    _id=int(_id)
-   domain = connection.test.domain1.find_one({'_id': _id})
+   #if _id.isnumeric():
+    #_id=int(_id)
+   domain = connection.test.keyword.find_one({'keyword': _id})
    if domain:
     #return jsonify(domain)
     #return domain['alexa_content']

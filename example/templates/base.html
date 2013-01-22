@@ -2,8 +2,9 @@
 <title>Tweepee</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <div class=page>
-  <h1><a href="{{ url_for('homepage') }}">Tweepee</a></h1>
+  <h1><a href="{{ url_for('homepage') }}">DN Data</a></h1>
   <div class=metanav>
+  <a href="{{ url_for('domainupload') }}">upload domains</a>  
   {% if not session.logged_in %}
     <a href="{{ url_for('auth.login') }}">log in</a>
     <a href="{{ url_for('join') }}">join</a>

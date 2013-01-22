@@ -5,3 +5,4 @@ peewee
 wtforms
 wtf-peewee
 Flask-PyMongo
+Flask-Assets

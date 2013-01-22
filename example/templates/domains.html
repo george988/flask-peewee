@@ -1,14 +1,90 @@
 <!doctype html>
-<title>Domain list</title>
+
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    
+    <title>domains</title>
+
+
+    {% assets "css_all" %}
+    <link rel="stylesheet"  type="text/css" href="{{ ASSET_URL }}">
+    {% endassets %}
+
+		<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+		<script type="text/javascript" language="javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script type="text/javascript" language="javascript" src="http://george988.github.com/js/jquery.dataTables.min.js"></script>
+		<script type="text/javascript" language="javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+		<script type="text/javascript" language="javascript" src="http://george988.github.com/js/autoselect.js"></script>
+		<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css">
+
+
+
+    <script type=text/javascript>
+	  $(document).ready(function() {
+	      oTable = $('#example').dataTable({
+        "bJQueryUI": true,
+        "sPaginationType": "full_numbers"
+    }); 
+	} );
+  </script>
+  </head>
+
+
+<table cellpadding="0" cellspacing="0" border="0" class="display domainlist" id="example">
+	<thead>
+		<tr>
+			<th>domain</th>
+<!-- 			<th>Price</th>
+			<th>date</th>
+			 <th>type</th> -->
+			 <th>en</th>
+			 <th>ovt_keyword</th>
+			 <th>ovt_domain</th>
+<!-- 			 <th>cvcv</th>
+			<th>nnnn</th>	 -->		 
+			<th>alexa</th>
+			<th>alexa array</th>
+			<th>pinyin</th>
+			<th>actions</th>
+			<th>custom</th>
+		</tr>
+	</thead>
+	<tbody>
 
  {% for domain in domains %}
- {{domain['_id']}} <br/>
+
+<tr domain="{{domain['domainname']}}">
+ <td class="domain">
+<a href="{{ url_for('show_domain_detail', dn=domain['domainname'])}}">
+ 	{{domain['domainname']}}
+ </a>
+</td>
+<!-- <td>price</td>
+<td>date</td>
+<td>type</td> -->
+<td>{{domain['en_dict']}}</td>
+<td>{{domain['ovt']}}</td>
+<td></td>
+<!-- <td>%(cvcv)s</td>
+<td>%(nnnn)s</td> -->
+<td class="alexa_rank">{{domain['alexa']}}</td>
+<td class="alexa_array" array="%(alexa_array_content)s">{{domain['alexa_count']}} </a></td>
+<td class="pinyin">{{ domain['pinyin'] }}</td>  
+ <td> <button class="more">...</button></td>
+ <td class="custom"></td>
+</tr>
+ {% endfor %}
+
+ </tbody></table>
+
+
+  {% for domain in domains %}
 {% if domain['len']  %}
 <h5> keyword length: {{domain['len']}} </h5>
 {% endif %}
-{% if domain['alexa_content']  %}
-  <h5>alexa content {{ domain['alexa_content']|length }} of {{domain['alexa_count']}} :</h5>
-  {% for alexa_entry in domain['alexa_content'] %}
+{% if domain['alexa_content_list']  %}
+  <h5>alexa content {{ domain['alexa_content_list']|length }} of {{domain['alexa_count']}} :</h5>
+  {% for alexa_entry in domain['alexa_content_list'] %}
     <li><a href="http://{{ alexa_entry[0] }}">{{ alexa_entry[0] }} </a> , {{ alexa_entry[1] }}</li>
   {% endfor %}
 {% endif %}
@@ -16,5 +92,6 @@
 {% if domain['pinyin']  %}
   <h5>pinyin: {{ domain['pinyin'] }}</h5>
 {% endif %}
+
 
  {% endfor %}

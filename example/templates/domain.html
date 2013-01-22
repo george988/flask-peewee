@@ -1,15 +1,34 @@
 <!doctype html>
 <title>Keyword Info</title>
-{% if domain['len']  %}
-<h5> keyword length: {{domain['len']}} </h5>
+{% if domain['domainname']  %}
+<h5> Domain Name: {{domain['domainname']}} </h5>
 {% endif %}
+{% if domain['alexa']  %}
+<h5> Alexa rank: {{domain['alexa']}} </h5>
+{% endif %}
+
+{% if domain['ovt']  %}
+<h5> ovt: {{domain['ovt']}} </h5>
+{% endif %}
+
+{% if domain['en_dict']  %}
+<h5> Is English word?: {{domain['en_dict']}} </h5>
+{% endif %}
+
+
+<h5> 
+{% if domain['len']  %}
+keyword length: {{domain['len']}} 
+{% endif %}
+{% if domain['pinyin']  %}
+  pinyin: {{ domain['pinyin'] }}
+{% endif %}
+</h5>
+
 {% if domain['alexa_content']  %}
-  <h5>alexa content {{ domain['alexa_content']|length }} of {{domain['alexa_count']}} :</h5>
-  {% for alexa_entry in domain['alexa_content'] %}
-    <li><a href="http://{{ alexa_entry[0] }}">{{ alexa_entry[0] }} </a> , {{ alexa_entry[1] }}</li>
+  <h5>alexa content {{ domain['alexa_content_list']|length }} of {{domain['alexa_count']}} :</h5>
+  {% for alexa_entry in domain['alexa_content_list'] %}
+    <li><a href="http://www.{{ alexa_entry[0] }}">{{ alexa_entry[0] }} </a> , {{ alexa_entry[1] }}</li>
   {% endfor %}
 {% endif %}
 
-{% if domain['pinyin']  %}
-  <h5>pinyin: {{ domain['pinyin'] }}</h5>
-{% endif %}
